@@ -6,265 +6,303 @@
     <title>WiFi Keyboard</title>
     <style>
         :root {
-            --bg-dark: #050505;
+            --bg-dark: #000000;
             --key-text: #ffffff;
+            --key-bg: #121212;
+            --key-pressed: #333;
             --accent: #00ff00;
-            --key-bg: rgba(255, 255, 255, 0.07);
         }
 
         body, html {
             margin: 0; padding: 0;
             width: 100vw; height: 100vh;
             background: var(--bg-dark);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             overflow: hidden;
             color: var(--key-text);
             touch-action: none;
             -webkit-user-select: none;
-            user-select: none;
         }
 
-        /* Moving RGB Wave Animation */
-        @keyframes moveRGB {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        @keyframes rgbWave {
+            0% { border-color: #ff0000; box-shadow: 0 0 4px #ff000044; }
+            25% { border-color: #00ff00; box-shadow: 0 0 4px #00ff0044; }
+            50% { border-color: #0000ff; box-shadow: 0 0 4px #0000ff44; }
+            75% { border-color: #ff00ff; box-shadow: 0 0 4px #ff00ff44; }
+            100% { border-color: #ff0000; box-shadow: 0 0 4px #ff000044; }
         }
 
-        .rgb-flow {
-            background: linear-gradient(270deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff00ff);
-            background-size: 400% 400%;
-            animation: moveRGB 15s ease infinite;
-        }
-
-        /* --- SETUP SCREEN --- */
         #setup-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            z-index: 1000;
+            background: #050505; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 1000;
         }
         #setup-screen input {
             padding: 15px; width: 80%; max-width: 300px;
             background: #111; border: 2px solid #333; border-radius: 10px;
             color: white; font-size: 1.2rem; text-align: center; margin-bottom: 20px;
-            outline: none;
         }
-        #setup-screen input:focus { border-color: var(--accent); }
         #setup-screen button {
             padding: 12px 40px; background: var(--accent); color: black;
-            border: none; border-radius: 8px; font-weight: bold; font-size: 1rem;
-            cursor: pointer;
+            border: none; border-radius: 8px; font-weight: bold;
         }
 
-        /* --- MAIN UI --- */
-        #main-wrapper {
-            display: none;
-            flex-direction: column;
-            width: 100%; height: 100%;
-        }
+        #main-wrapper { display: none; flex-direction: column; width: 100%; height: 100%; }
 
         #toolbar {
-            height: 50px;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 15px; border-bottom: 1px solid #333;
+            height: 40px; background: #111; display: flex; 
+            align-items: center; justify-content: space-between;
+            padding: 0 10px; border-bottom: 1px solid #333;
         }
 
         .toggle-btn {
-            background: #222; color: white; border: 1px solid #444;
-            padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8rem;
+            background: #222; color: var(--accent); border: 1px solid var(--accent);
+            padding: 5px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;
         }
 
-        #status { font-size: 0.8rem; font-weight: bold; color: #ff0000; }
+        #status { font-size: 0.75rem; font-weight: bold; color: #ff0000; }
 
         /* --- KEYBOARD VIEW --- */
         #keyboard-view {
-            flex-grow: 1; display: grid;
-            grid-template-rows: repeat(6, 1fr);
-            gap: 4px; padding: 8px;
+            flex-grow: 1; display: flex; flex-direction: column;
+            gap: 3px; padding: 5px; background: #000;
         }
-        .row { display: flex; gap: 4px; width: 100%; }
+        .row { display: flex; gap: 3px; flex: 1; width: 100%; }
+        
         .key {
             background: var(--key-bg); border-radius: 5px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.7rem; flex: 1;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 0.75rem; flex: 1;
+            border: 1px solid #222;
+            transition: transform 0.05s;
+            position: relative;
+            animation: rgbWave 4s linear infinite;
         }
-        .key.pressed { background: rgba(255, 255, 255, 0.3); transform: scale(0.92); box-shadow: 0 0 10px #fff; }
 
-        /* --- NAV PAD VIEW --- */
+        .key-p { font-size: 0.85rem; font-weight: bold; }
+        .key-s { position: absolute; top: 2px; left: 4px; font-size: 0.6rem; color: #777; }
+
+        .key.pressed { 
+            background: var(--key-pressed); 
+            transform: scale(0.94); 
+            animation-play-state: paused;
+            border-color: #fff !important;
+        }
+
+        /* Keyboard Widths */
+        .w-tab { flex: 1.5; } .w-caps { flex: 1.8; } .w-enter { flex: 2.2; }
+        .w-shift { flex: 2.4; } .w-shift-r { flex: 2.4; } .w-backspace { flex: 2.2; }
+        .w-space { flex: 6; } .w-ctrl { flex: 1.3; }
+        .arrow-key { background: #1a1a1a; font-size: 1.2rem; }
+
+        /* --- NAV PAD VIEW (FIXED OVERFLOW) --- */
         #nav-view {
             display: none; flex-direction: column;
-            align-items: center; justify-content: center; flex-grow: 1;
+            align-items: center; justify-content: center; 
+            flex-grow: 1; width: 100%; height: calc(100% - 40px);
+            box-sizing: border-box; padding: 20px;
         }
-        .dpad-container {
+
+        .nav-container {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 30px; width: 100%; max-width: 400px;
+        }
+
+        .dpad-grid {
             display: grid;
-            grid-template-areas: ". up ." "left click right" ". down .";
-            gap: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
         }
-        .nav-btn {
-            width: 90px; height: 90px; background: rgba(0,0,0,0.8);
-            border: 2px solid var(--accent); border-radius: 50%;
+
+        .rect-btn {
+            aspect-ratio: 4/3;
+            background: var(--key-bg);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             color: white; font-size: 2rem;
+            cursor: pointer;
         }
-        .nav-btn:active { background: var(--accent); color: black; transform: scale(0.95); }
-        .click-btn { grid-area: click; border-radius: 15px; background: var(--accent); color: black; font-size: 1.2rem; font-weight: bold; }
 
-        .mouse-extra { margin-top: 40px; display: flex; gap: 20px; }
-        .side-btn { padding: 15px 30px; background: #222; border: 1px solid #444; color: white; border-radius: 8px; font-weight: bold; }
+        /* Positioning buttons in the grid */
+        .btn-up { grid-column: 2; grid-row: 1; }
+        .btn-left { grid-column: 1; grid-row: 2; }
+        .btn-down { grid-column: 2; grid-row: 2; }
+        .btn-right { grid-column: 3; grid-row: 2; }
+
+        .rect-btn:active { 
+            background: var(--accent); 
+            color: #000; 
+            transform: scale(0.95);
+        }
+        
+        .mouse-section { 
+            display: flex; gap: 20px; width: 100%;
+        }
+
+        .mouse-btn {
+            flex: 1; height: 100px; background: #111;
+            border: 2px solid #444; color: white; border-radius: 15px; 
+            font-weight: bold; font-size: 1.1rem;
+            text-transform: uppercase;
+        }
+
+        .mouse-btn:active { 
+            border-color: var(--accent); 
+            background: #222; 
+            transform: scale(0.98);
+        }
 
         .hidden { display: none !important; }
     </style>
 </head>
-<body class="rgb-flow">
+<body>
 
     <div id="setup-screen">
-        <h1 style="color: var(--accent); margin-bottom: 5px;">WiFi Keyboard</h1>
-        <p style="color: #888; margin-bottom: 20px;">Remote PC Controller</p>
-        <input type="text" id="ip-input" placeholder="e.g. 192.168.1.5" value="10.53.95.130">
+        <h1 style="color: var(--accent); letter-spacing: 2px;">WiFi Keyboard - CONNECT</h1>
+        <input type="text" id="ip-input" placeholder="IP Address" value="10.53.95.130">
         <button onclick="connectToPC()">CONNECT</button>
     </div>
 
     <div id="main-wrapper">
         <div id="toolbar">
-            <button id="view-toggle" class="toggle-btn">SHOW NAV PAD</button>
-            <div id="status">● DISCONNECTED</div>
+            <button id="view-toggle" class="toggle-btn">NAV PAD</button>
+            <div id="status">● OFFLINE</div>
         </div>
 
         <div id="keyboard-view">
             <div class="row">
                 <div class="key" data-key="esc">Esc</div>
                 <div class="key" data-key="f1">F1</div><div class="key" data-key="f2">F2</div>
-                <div class="key" data-key="f5">F5</div><div class="key" data-key="f11">F11</div>
-                <div class="key" style="flex: 1.5;" data-key="backspace">Del</div>
+                <div class="key" data-key="f3">F3</div><div class="key" data-key="f4">F4</div>
+                <div class="key" data-key="f5">F5</div><div class="key" data-key="f6">F6</div>
+                <div class="key" data-key="f7">F7</div><div class="key" data-key="f8">F8</div>
+                <div class="key" data-key="f9">F9</div><div class="key" data-key="f10">F10</div>
+                <div class="key" data-key="f11">F11</div><div class="key" data-key="f12">F12</div>
+                <div class="key" data-key="delete">Del</div>
             </div>
             <div class="row">
-                <div class="key" data-key="1">1</div><div class="key" data-key="2">2</div><div class="key" data-key="3">3</div>
-                <div class="key" data-key="4">4</div><div class="key" data-key="5">5</div><div class="key" data-key="6">6</div>
-                <div class="key" data-key="7">7</div><div class="key" data-key="8">8</div><div class="key" data-key="9">9</div><div class="key" data-key="0">0</div>
+                <div class="key" data-key="`"><span class="key-s">~</span>`</div>
+                <div class="key" data-key="1"><span class="key-s">!</span>1</div>
+                <div class="key" data-key="2"><span class="key-s">@</span>2</div>
+                <div class="key" data-key="3"><span class="key-s">#</span>3</div>
+                <div class="key" data-key="4"><span class="key-s">$</span>4</div>
+                <div class="key" data-key="5"><span class="key-s">%</span>5</div>
+                <div class="key" data-key="6"><span class="key-s">^</span>6</div>
+                <div class="key" data-key="7"><span class="key-s">&</span>7</div>
+                <div class="key" data-key="8"><span class="key-s">*</span>8</div>
+                <div class="key" data-key="9"><span class="key-s">(</span>9</div>
+                <div class="key" data-key="0"><span class="key-s">)</span>0</div>
+                <div class="key" data-key="-"><span class="key-s">_</span>-</div>
+                <div class="key" data-key="="><span class="key-s">+</span>=</div>
+                <div class="key w-backspace" data-key="backspace">Bksp</div>
             </div>
             <div class="row">
-                <div class="key" data-key="q">Q</div><div class="key" data-key="w">W</div><div class="key" data-key="e">E</div><div class="key" data-key="r">R</div>
-                <div class="key" data-key="t">T</div><div class="key" data-key="y">Y</div><div class="key" data-key="u">U</div><div class="key" data-key="i">I</div>
-                <div class="key" data-key="o">O</div><div class="key" data-key="p">P</div>
+                <div class="key w-tab" data-key="tab">Tab</div>
+                <div class="key key-p" data-key="q">Q</div><div class="key key-p" data-key="w">W</div>
+                <div class="key key-p" data-key="e">E</div><div class="key key-p" data-key="r">R</div>
+                <div class="key key-p" data-key="t">T</div><div class="key key-p" data-key="y">Y</div>
+                <div class="key key-p" data-key="u">U</div><div class="key key-p" data-key="i">I</div>
+                <div class="key key-p" data-key="o">O</div><div class="key key-p" data-key="p">P</div>
+                <div class="key" data-key="["><span class="key-s">{</span>[</div>
+                <div class="key" data-key="]"><span class="key-s">}</span>]</div>
+                <div class="key" data-key="\"><span class="key-s">|</span>\</div>
             </div>
             <div class="row">
-                <div class="key" data-key="a">A</div><div class="key" data-key="s">S</div><div class="key" data-key="d">D</div><div class="key" data-key="f">F</div>
-                <div class="key" data-key="g">G</div><div class="key" data-key="h">H</div><div class="key" data-key="j">J</div><div class="key" data-key="k">K</div>
-                <div class="key" data-key="l">L</div><div class="key" data-key="enter">Enter</div>
+                <div class="key w-caps" data-key="capslock">Caps</div>
+                <div class="key key-p" data-key="a">A</div><div class="key key-p" data-key="s">S</div>
+                <div class="key key-p" data-key="d">D</div><div class="key key-p" data-key="f">F</div>
+                <div class="key key-p" data-key="g">G</div><div class="key key-p" data-key="h">H</div>
+                <div class="key key-p" data-key="j">J</div><div class="key key-p" data-key="k">K</div>
+                <div class="key key-p" data-key="l">L</div>
+                <div class="key" data-key=";"><span class="key-s">:</span>;</div>
+                <div class="key" data-key="'"><span class="key-s">"</span>'</div>
+                <div class="key w-enter" data-key="enter">Enter</div>
             </div>
             <div class="row">
-                <div class="key" data-key="shift">Shift</div><div class="key" data-key="z">Z</div><div class="key" data-key="x">X</div>
-                <div class="key" data-key="c">C</div><div class="key" data-key="v">V</div><div class="key" data-key="b">B</div><div class="key" data-key="n">N</div>
-                <div class="key" data-key="m">M</div><div class="key" data-key="up">▲</div>
+                <div class="key w-shift" data-key="shift">Shift</div>
+                <div class="key key-p" data-key="z">Z</div><div class="key key-p" data-key="x">X</div>
+                <div class="key key-p" data-key="c">C</div><div class="key key-p" data-key="v">V</div>
+                <div class="key key-p" data-key="b">B</div><div class="key key-p" data-key="n">N</div>
+                <div class="key key-p" data-key="m">M</div>
+                <div class="key" data-key=","><span class="key-s">&lt;</span>,</div>
+                <div class="key" data-key="."><span class="key-s">&gt;</span>.</div>
+                <div class="key" data-key="/"><span class="key-s">?</span>/</div>
+                <div class="key arrow-key" data-key="up">▲</div>
+                <div class="key w-shift-r" data-key="shift">Shift</div>
             </div>
             <div class="row">
-                <div class="key" data-key="ctrl">Ctrl</div><div class="key" data-key="alt">Alt</div>
-                <div class="key" style="flex: 4" data-key="space">SPACE</div>
-                <div class="key" data-key="left">◄</div><div class="key" data-key="down">▼</div><div class="key" data-key="right">►</div>
+                <div class="key w-ctrl">Fn</div>
+                <div class="key w-ctrl" data-key="ctrl">Ctrl</div>
+                <div class="key w-ctrl" data-key="win">Win</div>
+                <div class="key w-ctrl" data-key="alt">Alt</div>
+                <div class="key w-space" data-key="space">SPACE</div>
+                <div class="key w-ctrl" data-key="alt">Alt</div>
+                <div class="key arrow-key" data-key="left">◄</div>
+                <div class="key arrow-key" data-key="down">▼</div>
+                <div class="key arrow-key" data-key="right">►</div>
             </div>
         </div>
 
         <div id="nav-view">
-            <div class="dpad-container">
-                <div class="nav-btn" style="grid-area: up" ontouchstart="startMove(0, -25)" ontouchend="stopMove()">▲</div>
-                <div class="nav-btn" style="grid-area: left" ontouchstart="startMove(-25, 0)" ontouchend="stopMove()">◄</div>
-                <div class="nav-btn click-btn" ontouchstart="sendClick('left')">OK</div>
-                <div class="nav-btn" style="grid-area: right" ontouchstart="startMove(25, 0)" ontouchend="stopMove()">►</div>
-                <div class="nav-btn" style="grid-area: down" ontouchstart="startMove(0, 25)" ontouchend="stopMove()">▼</div>
-            </div>
-            <div class="mouse-extra">
-                <button class="side-btn" ontouchstart="sendClick('right')">RIGHT CLICK</button>
+            <div class="nav-container">
+                <div class="dpad-grid">
+                    <div class="rect-btn btn-up" ontouchstart="startMove(0,-20)" ontouchend="stopMove()">▲</div>
+                    <div class="rect-btn btn-left" ontouchstart="startMove(-20,0)" ontouchend="stopMove()">◄</div>
+                    <div class="rect-btn btn-down" ontouchstart="startMove(0,20)" ontouchend="stopMove()">▼</div>
+                    <div class="rect-btn btn-right" ontouchstart="startMove(20,0)" ontouchend="stopMove()">►</div>
+                </div>
+                
+                <div class="mouse-section">
+                    <button class="mouse-btn" ontouchstart="sendClick('left')">Left Click</button>
+                    <button class="mouse-btn" ontouchstart="sendClick('right')">Right Click</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let socket;
-        let moveTimer = null;
-        const setupScreen = document.getElementById('setup-screen');
-        const mainWrapper = document.getElementById('main-wrapper');
-        const statusEl = document.getElementById('status');
-        const kbView = document.getElementById('keyboard-view');
-        const navView = document.getElementById('nav-view');
-        const toggleBtn = document.getElementById('view-toggle');
+        let socket, moveTimer = null;
+        const main = document.getElementById('main-wrapper'), setup = document.getElementById('setup-screen');
+        const status = document.getElementById('status'), kb = document.getElementById('keyboard-view'), nav = document.getElementById('nav-view'), btn = document.getElementById('view-toggle');
 
         function connectToPC() {
             const ip = document.getElementById('ip-input').value;
-            statusEl.innerText = "● CONNECTING...";
-            statusEl.style.color = "orange";
-
+            status.innerText = "● CONNECTING...";
             socket = new WebSocket(`ws://${ip}:8765`);
-
-            socket.onopen = () => {
-                setupScreen.style.display = 'none';
-                mainWrapper.style.display = 'flex';
-                statusEl.innerText = "● CONNECTED";
-                statusEl.style.color = "#00ff00";
-            };
-
-            socket.onclose = () => {
-                alert("Connection lost. Returning to Home.");
-                mainWrapper.style.display = 'none';
-                setupScreen.style.display = 'flex';
-                statusEl.innerText = "● DISCONNECTED";
-                statusEl.style.color = "red";
-            };
-
-            socket.onerror = () => {
-                alert("Could not connect. Ensure the server script is running on your PC.");
-            };
+            socket.onopen = () => { setup.style.display='none'; main.style.display='flex'; status.innerText="● ONLINE"; status.style.color="#00ff00"; };
+            socket.onclose = () => { main.style.display='none'; setup.style.display='flex'; status.innerText="● OFFLINE"; status.style.color="red"; };
         }
 
-        function send(data) {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify(data));
-            }
-        }
+        function send(data) { if (socket && socket.readyState === 1) socket.send(JSON.stringify(data)); }
+        function startMove(dx, dy) { send({type:'mousemove', x:dx, y:dy}); moveTimer = setInterval(()=>send({type:'mousemove', x:dx, y:dy}), 50); }
+        function stopMove() { clearInterval(moveTimer); }
+        function sendClick(b) { if(navigator.vibrate) navigator.vibrate(20); send({type:'click', button:b}); }
 
-        function startMove(dx, dy) {
-            if (navigator.vibrate) navigator.vibrate(15);
-            send({ type: 'mousemove', x: dx, y: dy });
-            moveTimer = setInterval(() => {
-                send({ type: 'mousemove', x: dx, y: dy });
-            }, 50); 
-        }
-
-        function stopMove() {
-            clearInterval(moveTimer);
-        }
-
-        function sendClick(btn) {
-            if (navigator.vibrate) navigator.vibrate(20);
-            send({ type: 'click', button: btn });
-        }
-
-        toggleBtn.onclick = () => {
-            if (kbView.classList.contains('hidden')) {
-                kbView.classList.remove('hidden');
-                navView.style.display = 'none';
-                toggleBtn.innerText = "SHOW NAV PAD";
-            } else {
-                kbView.classList.add('hidden');
-                navView.style.display = 'flex';
-                toggleBtn.innerText = "SHOW KEYBOARD";
-            }
+        btn.onclick = () => {
+            const isKb = !kb.classList.contains('hidden');
+            kb.classList.toggle('hidden', isKb);
+            nav.style.display = isKb ? 'flex' : 'none';
+            btn.innerText = isKb ? 'KEYBOARD' : 'NAV PAD';
         };
 
-        document.querySelectorAll('.key').forEach(key => {
+        // Initialize Keys and Apply Horizontal RGB Wave Offset
+        document.querySelectorAll('.key').forEach((key) => {
+            const rect = key.getBoundingClientRect();
+            key.style.animationDelay = `-${(rect.left / window.innerWidth) * 4}s`;
             const k = key.getAttribute('data-key');
+            if(!k) return;
             key.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                key.classList.add('pressed');
-                if (navigator.vibrate) navigator.vibrate(10);
-                send({ type: 'keydown', key: k });
+                e.preventDefault(); key.classList.add('pressed');
+                if(navigator.vibrate) navigator.vibrate(15);
+                send({type:'keydown', key:k});
             });
-            key.addEventListener('touchend', (e) => {
+            key.addEventListener('touchend', () => {
                 key.classList.remove('pressed');
-                send({ type: 'keyup', key: k });
+                send({type:'keyup', key:k});
             });
         });
     </script>
