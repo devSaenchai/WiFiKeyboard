@@ -47,7 +47,7 @@ async def main():
     # "0.0.0.0" allows connections from any device on your local network
     # Ensure port 8765 is open in your Windows/OS firewall
     async with websockets.serve(handler, "0.0.0.0", 8765):
-        print("--- RGB WiFi Keyboard Server ---")
+        print("--- WiFi Keyboard Server ---")
         print("Status: Active")
         print("Listening on: Port 8765")
         await asyncio.Future()  # Run forever
